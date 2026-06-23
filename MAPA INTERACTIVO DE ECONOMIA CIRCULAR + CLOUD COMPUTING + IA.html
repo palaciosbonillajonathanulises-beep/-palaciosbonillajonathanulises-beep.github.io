@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Interactivo — Economía Circular, Cloud Computing e IA</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8f7f4;color:#2c2c2a;min-height:100vh}
+:root{--verde:#27500A;--verde-bg:#C0DD97;--verde-light:#EAF3DE;--verde-mid:#639922;--azul:#0C447C;--azul-bg:#B5D4F4;--azul-light:#E6F1FB;--azul-mid:#378ADD;--naranja:#633806;--naranja-bg:#FAC775;--naranja-light:#FAEEDA;--naranja-mid:#BA7517;--gris:#444441;--gris-bg:#D3D1C7;--gris-light:#F1EFE8}
+header{background:#fff;border-bottom:0.5px solid #d3d1c7;padding:1rem 2rem;display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:500;color:#2c2c2a}
+header p{font-size:13px;color:#888780;margin-top:2px}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:#EAF3DE;color:#27500A}
+.wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:0.75rem 1rem;background:#fff;border-radius:12px;border:0.5px solid #d3d1c7;align-items:center}
+.legend-label{font-size:13px;font-weight:500;color:#2c2c2a;margin-right:4px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#5f5e5a}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-hint{margin-left:auto;font-size:12px;color:#888780;display:flex;align-items:center;gap:4px}
+.map-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+.pillar{border-radius:12px;border:0.5px solid #d3d1c7;overflow:hidden;background:#fff}
+.pillar-header{padding:0.875rem 1rem;display:flex;align-items:center;gap:10px}
+.pillar-header i{font-size:22px}
+.pillar-title{font-size:14px;font-weight:500}
+.pillar-sub{font-size:11px;margin-top:1px;opacity:0.75}
+.pillar-verde .pillar-header{background:var(--verde-bg);color:var(--verde)}
+.pillar-azul .pillar-header{background:var(--azul-bg);color:var(--azul)}
+.pillar-naranja .pillar-header{background:var(--naranja-bg);color:var(--naranja)}
+.nodes{padding:0.75rem;display:flex;flex-direction:column;gap:6px}
+.node{padding:8px 10px;border-radius:8px;border:0.5px solid #d3d1c7;font-size:12px;color:#2c2c2a;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:7px;background:#fff}
+.node:hover{border-color:#888780;background:#f8f7f4}
+.node.active{border-width:1px}
+.node-verde.active{border-color:var(--verde-mid);background:var(--verde-light);color:var(--verde)}
+.node-azul.active{border-color:var(--azul-mid);background:var(--azul-light);color:var(--azul)}
+.node-naranja.active{border-color:var(--naranja-mid);background:var(--naranja-light);color:var(--naranja)}
+.node i{font-size:15px;flex-shrink:0}
+.sinergias{border-radius:12px;border:0.5px solid #d3d1c7;overflow:hidden;margin-bottom:1rem;background:#fff}
+.sin-header{padding:0.75rem 1rem;background:var(--gris-bg);display:flex;align-items:center;gap:8px}
+.sin-header i{font-size:18px;color:var(--gris)}
+.sin-title{font-size:13px;font-weight:500;color:var(--gris)}
+.sin-nodes{display:flex;flex-wrap:wrap;gap:6px;padding:0.75rem}
+.sin-tag{padding:6px 12px;border-radius:20px;font-size:12px;border:0.5px solid #d3d1c7;cursor:pointer;transition:all 0.15s;color:#5f5e5a;background:#fff}
+.sin-tag:hover{background:#f1efe8;border-color:#888780}
+.sin-tag.active{background:var(--gris-light);border-color:var(--gris);color:var(--gris)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:999;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;border:0.5px solid #d3d1c7;width:100%;max-width:540px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal-head{padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:10px;border-bottom:0.5px solid #d3d1c7;position:sticky;top:0;background:#fff;z-index:1}
+.modal-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-icon i{font-size:20px}
+.modal-ttl{font-size:15px;font-weight:500;color:#2c2c2a;margin-bottom:2px}
+.modal-cat{font-size:12px;color:#888780}
+.modal-close{margin-left:auto;background:none;border:0.5px solid #d3d1c7;cursor:pointer;font-size:16px;color:#888780;padding:6px 8px;border-radius:8px;line-height:1}
+.modal-close:hover{background:#f1efe8}
+.modal-body{padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+.modal-desc{font-size:13px;color:#5f5e5a;line-height:1.7;padding:0.75rem;background:#f8f7f4;border-radius:8px;border-left:3px solid #d3d1c7}
+.modal-section{display:flex;flex-direction:column;gap:6px}
+.modal-section-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:#888780}
+.modal-list{display:flex;flex-direction:column;gap:4px}
+.modal-list-item{font-size:13px;color:#2c2c2a;display:flex;gap:8px;line-height:1.5}
+.modal-list-item::before{content:"▸";flex-shrink:0;color:#b4b2a9}
+.impact-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:12px;line-height:1.5}
+.impact-verde{background:var(--verde-light);color:var(--verde)}
+.impact-azul{background:var(--azul-light);color:var(--azul)}
+.impact-naranja{background:var(--naranja-light);color:var(--naranja)}
+.impact-gris{background:var(--gris-light);color:var(--gris)}
+.cases{display:flex;flex-direction:column;gap:6px}
+.case-item{padding:10px 12px;border-radius:8px;background:#f8f7f4;font-size:12px;color:#2c2c2a;line-height:1.6;border:0.5px solid #d3d1c7}
+.case-company{font-weight:500;display:block;margin-bottom:3px;color:#2c2c2a}
+.norm-list{display:flex;flex-wrap:wrap;gap:4px}
+.norm-tag{padding:4px 10px;border-radius:20px;font-size:11px;background:#f1efe8;color:#5f5e5a;border:0.5px solid #d3d1c7}
+footer{text-align:center;padding:1.5rem;font-size:12px;color:#888780;border-top:0.5px solid #d3d1c7;margin-top:1rem;background:#fff}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="width:36px;height:36px;border-radius:8px;background:#EAF3DE;display:flex;align-items:center;justify-content:center">
+    <i class="ti ti-topology-star-3" style="font-size:20px;color:#27500A"></i>
+  </div>
+  <div>
+    <h1>Mapa Interactivo — Economía Circular, Cloud Computing e IA</h1>
+    <p>Convergencia tecnológica para la sustentabilidad · Actividad 009</p>
+  </div>
+  <span class="badge" style="margin-left:auto">2020–2025</span>
+</header>
+
+<div class="wrap">
+
+<div class="legend">
+  <span class="legend-label">Leyenda:</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#639922"></span>Economía Circular</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>Cloud Computing</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#BA7517"></span>Inteligencia Artificial</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#888780"></span>Sinergias integradas</span>
+  <span class="legend-hint"><i class="ti ti-hand-click" style="font-size:14px"></i>Haz clic en cualquier nodo para ver el detalle completo</span>
+</div>
+
+<div class="map-grid">
+  <div class="pillar pillar-verde">
+    <div class="pillar-header">
+      <i class="ti ti-recycle"></i>
+      <div><div class="pillar-title">Economía Circular</div><div class="pillar-sub">Ámbito tecnológico</div></div>
+    </div>
+    <div class="nodes">
+      <div class="node node-verde" onclick="openModal('ec1',this)"><i class="ti ti-refresh"></i>Principios circulares</div>
+      <div class="node node-verde" onclick="openModal('ec2',this)"><i class="ti ti-device-laptop"></i>Hardware sostenible</div>
+      <div class="node node-verde" onclick="openModal('ec3',this)"><i class="ti ti-trash"></i>Gestión de e-waste</div>
+      <div class="node node-verde" onclick="openModal('ec4',this)"><i class="ti ti-solar-panel"></i>Energías renovables</div>
+      <div class="node node-verde" onclick="openModal('ec5',this)"><i class="ti ti-building"></i>Casos: Google, Fairphone, Dell</div>
+    </div>
+  </div>
+
+  <div class="pillar pillar-azul">
+    <div class="pillar-header">
+      <i class="ti ti-cloud"></i>
+      <div><div class="pillar-title">Cloud Computing</div><div class="pillar-sub">Infraestructura verde</div></div>
+    </div>
+    <div class="nodes">
+      <div class="node node-azul" onclick="openModal('cc1',this)"><i class="ti ti-server"></i>Data centers eficientes</div>
+      <div class="node node-azul" onclick="openModal('cc2',this)"><i class="ti ti-bolt"></i>Energía 100% renovable</div>
+      <div class="node node-azul" onclick="openModal('cc3',this)"><i class="ti ti-chart-line"></i>Reducción huella carbono</div>
+      <div class="node node-azul" onclick="openModal('cc4',this)"><i class="ti ti-layers-difference"></i>Serverless y edge computing</div>
+      <div class="node node-azul" onclick="openModal('cc5',this)"><i class="ti ti-building"></i>Casos: AWS, Google, Azure</div>
+    </div>
+  </div>
+
+  <div class="pillar pillar-naranja">
+    <div class="pillar-header">
+      <i class="ti ti-brain"></i>
+      <div><div class="pillar-title">Inteligencia Artificial</div><div class="pillar-sub">Para la sustentabilidad</div></div>
+    </div>
+    <div class="nodes">
+      <div class="node node-naranja" onclick="openModal('ia1',this)"><i class="ti ti-settings-automation"></i>Optimización de recursos</div>
+      <div class="node node-naranja" onclick="openModal('ia2',this)"><i class="ti ti-robot"></i>Clasificación de residuos</div>
+      <div class="node node-naranja" onclick="openModal('ia3',this)"><i class="ti ti-plant"></i>Agricultura sostenible</div>
+      <div class="node node-naranja" onclick="openModal('ia4',this)"><i class="ti ti-flame"></i>Desafíos energéticos</div>
+      <div class="node node-naranja" onclick="openModal('ia5',this)"><i class="ti ti-scale"></i>Ética y gobernanza IA</div>
+    </div>
+  </div>
+</div>
+
+<div class="sinergias">
+  <div class="sin-header">
+    <i class="ti ti-arrows-shuffle"></i>
+    <span class="sin-title">Integración y sinergias tecnológicas — haz clic para explorar</span>
+  </div>
+  <div class="sin-nodes">
+    <span class="sin-tag" onclick="openModal('sin1',this)">☁️ Cloud + IA: entrenamiento verde</span>
+    <span class="sin-tag" onclick="openModal('sin2',this)">🔗 IoT + Blockchain: trazabilidad circular</span>
+    <span class="sin-tag" onclick="openModal('sin3',this)">📡 5G + Edge Computing</span>
+    <span class="sin-tag" onclick="openModal('sin4',this)">⚛️ Quantum computing ambiental</span>
+    <span class="sin-tag" onclick="openModal('sin5',this)">🧬 Biocomputación</span>
+    <span class="sin-tag" onclick="openModal('sin6',this)">🌱 Economía regenerativa</span>
+  </div>
+</div>
+
+</div>
+
+<div class="modal-overlay" id="overlay" onclick="closeOnOverlay(event)">
+<div class="modal" id="modal">
+  <div class="modal-head">
+    <div class="modal-icon" id="m-icon"></div>
+    <div><div class="modal-ttl" id="m-title"></div><div class="modal-cat" id="m-cat"></div></div>
+    <button class="modal-close" onclick="closeModal()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="modal-body" id="m-body"></div>
+</div>
+</div>
+
+<footer>Actividad 009 · Economía Circular, Cloud Computing e Inteligencia Artificial · Fuentes: WEF, Accenture, AWS, Google Sustainability, RETEMA, UNEP, IEA (2020–2025)</footer>
+
+<script>
+const data={
+ec1:{title:"Principios de economía circular",cat:"Economía Circular — Fundamentos",color:"verde",icon:"ti-recycle",desc:"La economía circular propone sustituir el modelo lineal (extraer-producir-desechar) por un sistema cerrado donde los materiales se mantienen en uso el mayor tiempo posible. Sus principios son: Reducir, Reutilizar, Reciclar y Rediseñar.",apps:["Diseño de productos sin residuos desde la fase inicial","Extensión de vida útil de dispositivos electrónicos","Logística inversa para recuperar materiales valiosos","Modelos de negocio basados en el servicio (product-as-a-service)"],cases:[{co:"Circularity Gap Report 2024",d:"Solo el 7.2% de la economía mundial es circular. Con 16 soluciones circulares se podría reducir la extracción de materiales en un tercio y limitar el calentamiento global a 2°C."},{co:"Renault ReFactory (2023)",d:"Reconversión de fábricas en centros de remanufactura circular. Reentrenaron a más de 3,000 trabajadores en técnicas de economía circular."}],impact:"El 55% de las grandes empresas globales han hecho compromisos medibles de circularidad (Bain & Company, 2024)",norm:["EU Green Deal","Plan de Acción de Economía Circular UE","ODS 12 — Producción y consumo responsables"]},
+ec2:{title:"Hardware sostenible y modular",cat:"Economía Circular — Aplicaciones tecnológicas",color:"verde",icon:"ti-device-laptop",desc:"El rediseño de dispositivos electrónicos hacia la modularidad y reparabilidad es clave para reducir el e-waste. Implica usar materiales reciclados, facilitar la reparación y eliminar la obsolescencia programada.",apps:["Dispositivos con componentes intercambiables por el usuario","Uso de aluminio, plásticos y tierras raras recicladas","Diseño para el desmontaje al final de vida útil","Programas de reacondicionamiento certificado"],cases:[{co:"Framework Laptop",d:"Laptop 100% modular donde el usuario puede reemplazar CPU, RAM, puertos y batería. Fabricada con aluminio reciclado post-consumo."},{co:"Fairphone 5 (2023)",d:"Smartphone con índice de reparabilidad de 10/10. Cadena de suministro con minerales de comercio justo. Garantía extendida de 10 años."},{co:"Back Market",d:"Plataforma líder en Europa de smartphones reacondicionados. En 2024 se vendieron 27 millones de smartphones reacondicionados en Europa."}],impact:"La reparabilidad reduce hasta un 70% las emisiones de CO₂ respecto a fabricar un dispositivo nuevo desde cero",norm:["Reglamento de Diseño Ecológico UE","Right to Repair Act","ISO 14001 — Gestión ambiental"]},
+ec3:{title:"Gestión de e-waste",cat:"Economía Circular — Residuos electrónicos",color:"verde",icon:"ti-trash",desc:"Los residuos electrónicos son el flujo de residuos de mayor crecimiento mundial. La correcta gestión implica reciclaje certificado, recuperación de materiales valiosos y prevención de contaminación con metales pesados.",apps:["Reciclaje certificado de baterías de litio y tierras raras","Procesos de remanufactura de componentes electrónicos","Programas de devolución y take-back para fabricantes","Blockchain para trazabilidad de materiales reciclados"],cases:[{co:"Apple Daisy",d:"Robot de IA capaz de desmontar 23 modelos de iPhone a 1.2 millones de unidades por año, recuperando aluminio, cobalto y tierras raras con alta pureza."},{co:"Dell Technologies",d:"Compromiso de recuperar 2,000 toneladas de materiales reciclados por tonelada de producto vendido para 2030. Reciclaje en más de 70 países."},{co:"México — SEMARNAT",d:"México genera 1.1 millones de toneladas de e-waste al año. La NOM-161 regula el manejo de residuos electrónicos, aunque la aplicación sigue siendo limitada."}],impact:"Solo el 17% del e-waste global se recicla formalmente (ONU, 2023). El valor de materiales recuperables supera los 57,000 millones de dólares anuales",norm:["Convenio de Basilea","NOM-161-SEMARNAT (México)","RAEE Directiva UE 2012/19"]},
+ec4:{title:"Energías renovables en fabricación",cat:"Economía Circular — Energía limpia",color:"verde",icon:"ti-solar-panel",desc:"La transición hacia energías limpias en la fabricación tecnológica reduce drásticamente la huella de carbono de los productos digitales, desde chips hasta centros de datos.",apps:["Fabricación de dispositivos con energía solar y eólica","Contratos de compra de energía renovable (PPAs)","Certificados de energía renovable (RECs)","Baterías de almacenamiento en plantas de producción"],cases:[{co:"Tesla Gigafactory Nevada",d:"Diseñada para operar 100% con energías renovables combinando paneles solares, energía eólica y almacenamiento en baterías de gran escala."},{co:"Google (2024)",d:"Redujo emisiones de sus centros de datos en un 12% respecto al año anterior. Sus proyectos reabastecieron 17,000 millones de litros de agua."},{co:"TSMC (Taiwan)",d:"Mayor fabricante de chips del mundo, comprometida con energía 100% renovable antes de 2050 bajo presión de Apple, NVIDIA y otros clientes."}],impact:"La fabricación con energía renovable puede reducir hasta un 80% las emisiones de Alcance 2 de los dispositivos electrónicos",norm:["RE100 (iniciativa empresarial)","Paris Agreement NDCs","ODS 7 — Energía asequible y no contaminante"]},
+ec5:{title:"Casos: Google, Fairphone, Dell, México",cat:"Economía Circular — Casos de estudio",color:"verde",icon:"ti-building",desc:"Empresas tecnológicas líderes implementan modelos circulares completos que integran diseño sostenible, energías renovables, reciclaje avanzado y economía de servicio.",apps:["Reutilización del 75% de componentes en data centers","Economía de servicio: dispositivos como servicio en lugar de venta","Programas de reciclaje certificado con compensación al usuario","Alianzas con ONGs para minería responsable de minerales"],cases:[{co:"Google",d:"Reutiliza el 75% de componentes de sus servidores. Empaques 100% libres de plástico. Cinco productos ayudaron a reducir 26 millones de toneladas de GEI en 2024."},{co:"Fairphone",d:"Referente global de circularidad en electrónica. Puntuación 10/10 en reparabilidad. Usa cobalto y oro de comercio justo certificado."},{co:"México — Kubo",d:"Startup mexicana de reacondicionamiento de electrónicos con presencia en CDMX, Monterrey y Guadalajara. Caso local emergente de economía circular."}],impact:"La integración digital en modelos circulares genera ahorros del 25-30% en materias primas y 15-20% en logística, con 40% menos emisiones (RETEMA, 2025)",norm:["GRI 306 — Residuos","B Corp Certification","ISO 14040 — Análisis de Ciclo de Vida"]},
+cc1:{title:"Data centers eficientes",cat:"Cloud Computing Sostenible — Infraestructura",color:"azul",icon:"ti-server",desc:"Los centros de datos modernos miden su eficiencia con el indicador PUE (Power Usage Effectiveness). Los líderes del sector apuntan a PUE menor a 1.2, frente al promedio industrial de 1.58.",apps:["Refrigeración líquida directa a procesadores (Direct Liquid Cooling)","Diseño de flujo de aire caliente/frío (hot-aisle/cold-aisle containment)","Reutilización del calor residual para calefacción urbana","Ubicación en zonas con clima frío o cerca de fuentes de agua renovables"],cases:[{co:"Google Finlandia",d:"Data center junto al mar Báltico que usa agua del mar para refrigeración natural. PUE de 1.09, entre los más eficientes del mundo."},{co:"Microsoft Project Natick",d:"Experimento de data center submarino: 864 servidores operaron 2 años bajo el mar con alta confiabilidad y mayor eficiencia que instalaciones terrestres."},{co:"AWS (2024)",d:"Firmó cuatro proyectos de energía nuclear para sus centros de datos. Infraestructura hasta 4.1 veces más eficiente que soluciones on-premise."}],impact:"Los data centers en nube son hasta 4.1 veces más eficientes energéticamente que la infraestructura física local (AWS, 2024)",norm:["LEED Certification (data centers)","ISO 50001 — Gestión de energía","EU Code of Conduct for Data Centres"]},
+cc2:{title:"Energía 100% renovable en cloud",cat:"Cloud Computing Sostenible — Energía",color:"azul",icon:"ti-bolt",desc:"Los grandes proveedores de nube lideran la transición energética global. Google fue pionero al alcanzar el 100% renovable en 2017; Microsoft y AWS siguen con compromisos igualmente ambiciosos.",apps:["Power Purchase Agreements (PPAs) con parques solares y eólicos","Certificados de Energía Renovable (RECs) verificados","Inversión en generación nuclear avanzada para 24/7 sin carbono","Google Carbon Sense Suite para medición en tiempo real"],cases:[{co:"Google Cloud",d:"100% energía renovable desde 2017. En 2024 opera con energía libre de carbono el 64% del tiempo. Meta: 24/7 sin carbono para 2030."},{co:"Microsoft Azure",d:"Compromiso de ser carbono negativo para 2030 y remover todo el carbono emitido desde su fundación para 2050."},{co:"AWS España (2024)",d:"Más de 90 proyectos de energía renovable activos. Planta solar en Aragón que genera empleo local y alimenta centros de datos regionales."}],impact:"El cloud computing genera un ahorro estimado de más de 59 millones de toneladas de CO₂ y 200,000 millones de euros anuales (Plain Concepts, 2024)",norm:["RE100","Science Based Targets initiative (SBTi)","ODS 13 — Acción por el clima"]},
+cc3:{title:"Reducción de huella de carbono",cat:"Cloud Computing Sostenible — Impacto ambiental",color:"azul",icon:"ti-chart-line",desc:"Migrar cargas de trabajo a la nube pública es una de las estrategias más efectivas para reducir las emisiones de TI de las organizaciones. Los hiperescaladores logran eficiencias imposibles para infraestructuras propias.",apps:["Consolidación de servidores: de cientos a decenas por empresa","Microsoft Emissions Impact Dashboard para monitoreo en tiempo real","Optimización de cargas según intensidad carbónica de la red eléctrica","Informes de sostenibilidad con datos auditados externamente"],cases:[{co:"Accenture Study (2023)",d:"Las empresas que migran a nube reducen emisiones hasta un 84%, gracias en parte al 65% de reducción del consumo de energía."},{co:"Google Carbon Sense",d:"Suite de herramientas que permite a clientes medir y optimizar su huella de carbono en tiempo real dentro de Google Cloud."},{co:"SAP + Azure",d:"Migración de SAP a Azure redujo su huella de carbono de TI en un 40% en dos años, equivalente a plantar 2 millones de árboles."}],impact:"Reducción promedio del 84% en emisiones de carbono al migrar de infraestructura propia a nube pública (Accenture, 2023)",norm:["GHG Protocol — Alcance 3","CSRD (Corporate Sustainability Reporting Directive)","ISO 14064 — Cuantificación de GEI"]},
+cc4:{title:"Serverless y edge computing",cat:"Cloud Computing Sostenible — Arquitecturas",color:"azul",icon:"ti-layers-difference",desc:"Las arquitecturas serverless y edge computing ejecutan código solo cuando es necesario y procesan datos cerca de su origen, reduciendo latencia y consumo energético significativamente.",apps:["Funciones como servicio (FaaS): AWS Lambda, Google Cloud Functions","Edge computing: procesamiento en dispositivos IoT sin enviar datos a nube","Reducción de transferencia de datos y latencia en aplicaciones críticas","Apagado automático de recursos cuando no están en uso"],cases:[{co:"Cloudflare Workers",d:"Red de edge computing en 300+ ciudades. Procesa solicitudes a menos de 50ms del usuario final, reduciendo tráfico de red hasta un 60%."},{co:"AWS Greengrass",d:"Extiende el cloud al edge en fábricas, vehículos y dispositivos IoT. Permite operar sin conexión con sincronización inteligente posterior."},{co:"Telcel / Telmex México",d:"Implementación de edge computing en CDMX para IoT industrial y ciudades inteligentes, reduciendo latencia de 120ms a menos de 5ms."}],impact:"Serverless puede reducir hasta un 90% el tiempo en que servidores consumen energía sin procesar cargas útiles activas",norm:["ETSI MEC — Multi-Access Edge Computing","3GPP 5G Standards","ISO/IEC 23751 — Cloud computing"]},
+cc5:{title:"Casos: AWS, Google Cloud, Azure",cat:"Cloud Computing Sostenible — Líderes del sector",color:"azul",icon:"ti-building",desc:"Los tres grandes hiperescaladores concentran el 60% del mercado cloud global y lideran los estándares de sostenibilidad en infraestructura digital a nivel mundial.",apps:["AWS: 4.1x más eficiente que on-premise; meta carbono cero 2040","Google Cloud: 100% renovable, herramientas Carbon Sense para clientes","Azure: carbono negativo 2030; Microsoft Cloud for Sustainability","Plataformas de transparencia: informes de sostenibilidad auditados"],cases:[{co:"AWS",d:"Puede reducir la huella de carbono hasta en un 99% respecto a infraestructura propia. En 2024 firmó contratos de energía nuclear para sus centros de datos."},{co:"Google Cloud",d:"Único proveedor que reporta en tiempo real la intensidad de carbono por región. Permite elegir regiones más verdes para cargas de trabajo."},{co:"Microsoft Azure",d:"Microsoft Cloud for Sustainability integra datos ESG de toda la cadena de valor. El dashboard de emisiones permite descarbonización medible por área."}],impact:"Los tres grandes proveedores invierten colectivamente más de 50,000 millones de dólares anuales en infraestructura verde (2023–2025)",norm:["GreenGrid PUE Standard","Climate Neutral Data Centre Pact (UE)","CDP — Carbon Disclosure Project"]},
+ia1:{title:"Optimización de recursos con IA",cat:"IA para la Sustentabilidad — Eficiencia",color:"naranja",icon:"ti-settings-automation",desc:"La IA permite optimizar en tiempo real el consumo de energía, agua y materiales en sistemas complejos, desde edificios hasta redes eléctricas, logrando eficiencias imposibles para operadores humanos.",apps:["Smart grids: balanceo automático de oferta/demanda energética","Mantenimiento predictivo: evitar fallos antes de que ocurran","Optimización de rutas logísticas para reducir emisiones de transporte","Google Maps: selección de rutas con menor consumo de combustible"],cases:[{co:"Google DeepMind — Data Centers",d:"IA redujo el consumo energético de refrigeración de los data centers de Google en un 40%, ahorrando cientos de millones de dólares anuales."},{co:"Google Maps (2024)",d:"5 productos de Google ayudaron a reducir 26 millones de toneladas de GEI en 2024, incluyendo rutas ecoeficientes para aerolíneas y automovilistas."},{co:"Siemens + IA — México",d:"Sistema de gestión energética con IA para edificios industriales. Reducción promedio del 25% en consumo eléctrico en plantas de Monterrey."}],impact:"La IA aplicada a redes eléctricas puede reducir pérdidas de transmisión hasta en un 10%, equivalente a eliminar decenas de plantas generadoras",norm:["IEEE P2861 — AI for Smart Grid","ODS 7 — Energía limpia","EU AI Act — aplicaciones de alto impacto"]},
+ia2:{title:"Clasificación de residuos con IA",cat:"IA para la Sustentabilidad — Economía circular",color:"naranja",icon:"ti-robot",desc:"Los sistemas de visión por computadora y machine learning clasifican residuos con mayor precisión y velocidad que operadores humanos, aumentando drásticamente las tasas de reciclaje efectivo.",apps:["Visión por computadora para identificar materiales en cintas transportadoras","Robótica con IA para separación precisa de metales, plásticos y papel","Reconocimiento de e-waste en líneas de desmontaje automatizado","Optimización de rutas de recolección de residuos en ciudades"],cases:[{co:"AMP Robotics",d:"Sistema de IA que clasifica más de 80 tipos de materiales reciclables a 2 objetos por segundo con 99% de precisión. Instalado en 60+ plantas en EE.UU."},{co:"Greyparrot.ai (2023)",d:"IA que analiza composición de residuos en tiempo real en plantas de reciclaje. Usada en Europa para cumplir metas del EU Green Deal."},{co:"CDMX — Bordo Poniente",d:"Prueba piloto de clasificación automatizada de residuos en Bordo Poniente, CDMX. Proyecto en desarrollo con apoyo del BID y SEMARNAT."}],impact:"AMP Robotics aumenta la recuperación de materiales reciclables hasta en un 50% respecto a la clasificación manual tradicional",norm:["Basel Convention","EU Taxonomy Regulation","NOM-083-SEMARNAT (México)"]},
+ia3:{title:"Agricultura sostenible con IA",cat:"IA para la Sustentabilidad — Agroalimentario",color:"naranja",icon:"ti-plant",desc:"La IA está transformando la agricultura hacia modelos de precisión que reducen el uso de agua, fertilizantes y pesticidas, mientras aumentan rendimientos y reducen pérdidas post-cosecha.",apps:["Monitoreo satelital de cultivos con análisis de imágenes por IA","Sistemas de riego inteligente basados en condiciones del suelo y clima","Predicción de plagas y enfermedades antes de que se manifiesten","Optimización de cadenas de suministro alimentario para reducir desperdicio"],cases:[{co:"John Deere + Blue River",d:"Tecnología 'See & Spray' usa IA y visión por computadora para aplicar herbicidas solo donde hay maleza. Reduce uso de químicos hasta en un 90%."},{co:"Syngenta — México (2023)",d:"IA para monitoreo de cultivos de maíz y aguacate en Michoacán y Jalisco. Reducción del 30% en uso de agua de riego por temporada."},{co:"Climate Corporation",d:"Plataforma de agricultura digital con IA que analiza datos de suelo, clima e historial de cultivos para optimizar cada metro cuadrado de campo."}],impact:"La agricultura de precisión con IA puede reducir el uso de agua hasta un 30% y de fertilizantes hasta un 25%, manteniendo o mejorando los rendimientos",norm:["FAO — Estrategia de agricultura digital","ODS 2 — Hambre cero","Ley de Desarrollo Rural Sustentable (México)"]},
+ia4:{title:"Desafíos energéticos de la IA",cat:"IA para la Sustentabilidad — Riesgos",color:"naranja",icon:"ti-flame",desc:"El entrenamiento de modelos de IA de gran escala consume cantidades masivas de energía y agua, creando una paradoja: la tecnología que ayuda a combatir el cambio climático también puede contribuir a él.",apps:["TinyML: modelos compactos que operan en dispositivos con mínima energía","Cuantización de modelos: reducción de precisión numérica para mayor eficiencia","TPUs verdes: chips especializados con mejor rendimiento por vatio","Entrenamiento en regiones con mayor proporción de energía renovable"],cases:[{co:"GPT-3 (OpenAI)",d:"El entrenamiento consumió aproximadamente 1,287 MWh de electricidad y generó 552 toneladas de CO₂, equivalente a 300 vuelos transatlánticos."},{co:"Google DeepMind",d:"Desarrolló técnicas de 'green AI' para reducir la huella de sus modelos. Su chip TPU v4 es 2-3 veces más eficiente que GPUs equivalentes en tareas de IA."},{co:"Stable Diffusion vs DALL-E",d:"Modelos de imagen más pequeños y eficientes demuestran que la calidad no requiere necesariamente mayor consumo energético."}],impact:"El consumo energético de la IA podría multiplicarse por 10 hacia 2030 si no se adoptan estrategias de eficiencia (IEA, 2024)",norm:["EU AI Act — transparencia energética","Green AI Manifesto","ODS 13 — Acción por el clima"]},
+ia5:{title:"Ética y gobernanza de la IA",cat:"IA para la Sustentabilidad — Marco normativo",color:"naranja",icon:"ti-scale",desc:"El despliegue responsable de la IA para la sustentabilidad requiere marcos éticos que prevengan el greenwashing algorítmico, los sesgos en modelos de impacto ambiental y la concentración del beneficio tecnológico.",apps:["Auditorías algorítmicas de modelos de IA de impacto ambiental","Transparencia en datos de entrenamiento y métricas de sostenibilidad","Participación comunitaria en sistemas de IA que afectan territorios","Certificaciones de IA ética para sistemas de gestión ambiental"],cases:[{co:"EU AI Act (2024)",d:"Primera regulación vinculante de IA en el mundo. Clasifica sistemas por riesgo y establece requisitos específicos para aplicaciones de alto impacto ambiental y social."},{co:"OECD Principles on AI",d:"Marco adoptado por 46 países que incluye sustentabilidad como valor central del desarrollo de IA responsable."},{co:"México — Estrategia Nacional de IA",d:"México publicó su hoja de ruta de IA en 2021. En 2024 avanzó en lineamientos para IA en servicios públicos, aunque sin ley específica aún."}],impact:"El greenwashing algorítmico —declarar impactos ambientales positivos sin evidencia medible— es uno de los riesgos éticos más documentados del sector IA",norm:["EU AI Act","OECD AI Principles","IEEE Ethically Aligned Design","Marco Ético de IA — UNESCO"]},
+sin1:{title:"Cloud + IA: entrenamiento verde",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"La combinación de infraestructura cloud sostenible con IA crea un ciclo virtuoso: la nube provee energía renovable para entrenar modelos, y la IA optimiza la eficiencia de los propios data centers.",apps:["Entrenamiento de modelos de IA en regiones cloud con mayor % de energía renovable","IA que predice y optimiza el consumo energético de los data centers","AutoML verde: selección automática de modelos más eficientes","Carbon-aware computing: programar cargas según disponibilidad de energía limpia"],cases:[{co:"Google Carbon-Aware Computing",d:"Sistema que desplaza cargas de trabajo no urgentes hacia momentos y regiones con mayor disponibilidad de energía renovable en la red eléctrica."},{co:"Microsoft + OpenAI",d:"Acuerdo para entrenar modelos de OpenAI en data centers de Azure alimentados 100% con energías renovables para 2025."}],impact:"El carbon-aware computing puede reducir hasta un 30% las emisiones de cargas de IA sin afectar el rendimiento (Google, 2023)",norm:["Green Software Foundation","ISO/IEC 25010 — Eficiencia de software"]},
+sin2:{title:"IoT + Blockchain: trazabilidad circular",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"La combinación de sensores IoT con registros blockchain permite rastrear el ciclo de vida completo de materiales y productos, garantizando la autenticidad de las declaraciones de circularidad.",apps:["Pasaportes Digitales de Producto (DPP) — estándar obligatorio UE desde 2025","Trazabilidad de minerales desde mina hasta dispositivo terminado","Verificación de cadenas de reciclaje con evidencia inmutable en blockchain","Marketplaces de materiales secundarios con confianza garantizada"],cases:[{co:"Catena-X (Automotive)",d:"Red de datos con blockchain para la industria automotriz europea. Rastrea materiales y componentes a lo largo de toda la cadena de suministro global."},{co:"UNEP + IBM",d:"Plataforma blockchain para trazabilidad de residuos plásticos oceánicos desde la recolección hasta el reciclaje final verificado."}],impact:"Los Pasaportes Digitales de Producto serán obligatorios en la UE para baterías (2025), textiles y electrónicos (2026)",norm:["EU Ecodesign Regulation","Digital Product Passport (DPP)","GS1 Global Traceability Standard"]},
+sin3:{title:"5G + Edge Computing ambiental",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"La combinación de redes 5G y edge computing permite procesar datos ambientales en tiempo real, habilitando monitoreo, respuesta rápida y gestión eficiente de recursos que no eran posibles anteriormente.",apps:["Sensores ambientales en ciudades para monitoreo de calidad del aire en tiempo real","Contenedores inteligentes que notifican su capacidad de residuos","Vehículos autónomos eléctricos con comunicación V2X para eficiencia de tráfico","Fábricas inteligentes con control de procesos y reducción de desperdicio"],cases:[{co:"Telefónica Smart Cities",d:"Red de sensores IoT sobre 5G en Madrid y Barcelona para monitoreo de calidad del aire, ruido y gestión eficiente del agua potable."},{co:"Monterrey Smart City",d:"Piloto de sensores 5G+IoT en Monterrey para gestión de agua potable. Reducción del 18% en pérdidas por fugas detectadas con IA en tiempo real."}],impact:"El edge computing reduce el tráfico de datos en red hasta un 75%, disminuyendo la energía consumida en transmisión de información",norm:["3GPP Release 17 (5G-Advanced)","ITU IMT-2020","ETSI MEC GS 003"]},
+sin4:{title:"Quantum computing ambiental",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"La computación cuántica promete resolver problemas de optimización ambiental de escala y complejidad imposibles para computadoras clásicas, desde simulación de materiales hasta optimización logística global.",apps:["Optimización de rutas logísticas globales para reducir emisiones de transporte","Simulación de nuevos materiales para baterías y paneles solares más eficientes","Modelado climático de alta resolución para predicciones más precisas","Optimización de redes eléctricas con millones de variables simultáneas"],cases:[{co:"IBM Quantum + Boeing",d:"Uso de quantum computing para optimizar rutas de vuelo y reducir consumo de combustible. Ahorros estimados de millones de toneladas de CO₂ anuales."},{co:"Google Quantum AI (2023)",d:"Demostración de ventaja cuántica para simulación molecular relevante al diseño de catalizadores y materiales de energía limpia."}],impact:"La computación cuántica podría reducir un 7% las emisiones globales de GEI para 2035 mediante optimización avanzada (Accenture Quantum, 2023)",norm:["National Quantum Initiative (EE.UU.)","EU Quantum Flagship","Agenda Digital Nacional México"]},
+sin5:{title:"Biocomputación y almacenamiento en ADN",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"La biocomputación explora procesamiento inspirado en la biología, desde almacenamiento en ADN hasta chips neuromórficos que imitan el cerebro, ofreciendo eficiencia energética radical.",apps:["Almacenamiento de datos en ADN sintético: 1 gramo puede almacenar 215 petabytes","Chips neuromórficos: Intel Loihi consume 1,000x menos energía que CPUs convencionales","Computación bioinspirada para optimización de sistemas de distribución","Algoritmos evolutivos para diseño de materiales sostenibles"],cases:[{co:"Microsoft DNA Storage",d:"Proyecto de investigación para almacenar datos en moléculas de ADN. Densidad de información 1 millón de veces mayor que discos actuales."},{co:"Intel Loihi 2 (2023)",d:"Chip neuromórfico de segunda generación. Resuelve problemas de optimización con eficiencia energética 1,000x superior a arquitecturas convencionales."}],impact:"El almacenamiento en ADN podría satisfacer toda la demanda global de datos con un cubo de ADN de apenas 1 metro de lado",norm:["IEEE Brain Initiative","EU Human Brain Project","ODS 9 — Industria, innovación e infraestructura"]},
+sin6:{title:"Economía regenerativa",cat:"Sinergia Tecnológica",color:"gris",icon:"ti-arrows-shuffle",desc:"Más allá de la circularidad, la economía regenerativa aspira a que los sistemas productivos restauren activamente los ecosistemas y el bienestar social, no solo dejen de dañarlos.",apps:["Agricultura regenerativa: captura activa de carbono en suelos agrícolas","Diseño de productos que devuelven nutrientes a la tierra al final de vida","Empresas B que miden impacto social y ambiental como parte de su valor","Inversión de impacto: capital que financia la restauración de ecosistemas"],cases:[{co:"Patagonia",d:"Referente global en economía regenerativa. Donó la compañía en 2022 para destinar ganancias a la lucha climática. Programa Worn Wear de reparación y reutilización."},{co:"Interface Carpets",d:"Fabricante que va más allá de la neutralidad de carbono: sus nuevos productos capturan más carbono del que emiten durante todo su ciclo de vida."},{co:"México — Sembrando Vida",d:"Programa federal de prácticas agroforestales regenerativas. Ha sembrado más de 1,000 millones de árboles nativos en zonas rurales del país."}],impact:"La economía regenerativa podría secuestrar hasta 10 Gt de CO₂ anuales mediante agricultura, restauración forestal y oceánica (Project Drawdown, 2024)",norm:["ODS 15 — Vida de ecosistemas terrestres","Kunming-Montreal Biodiversity Framework","Ley General de Desarrollo Forestal Sustentable (México)"]}
+};
+
+let activeEl=null;
+function openModal(id,el){
+  const d=data[id];
+  const iconBg={verde:'#EAF3DE',azul:'#E6F1FB',naranja:'#FAEEDA',gris:'#F1EFE8'};
+  const iconCol={verde:'#639922',azul:'#378ADD',naranja:'#BA7517',gris:'#888780'};
+  const badgeCls={verde:'impact-verde',azul:'impact-azul',naranja:'impact-naranja',gris:'impact-gris'};
+  document.getElementById('m-icon').style.cssText=`background:${iconBg[d.color]};color:${iconCol[d.color]};width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0`;
+  document.getElementById('m-icon').innerHTML=`<i class="ti ${d.icon}" style="font-size:20px"></i>`;
+  document.getElementById('m-title').textContent=d.title;
+  document.getElementById('m-cat').textContent=d.cat;
+  let body=`<p class="modal-desc">${d.desc}</p>`;
+  body+=`<div class="modal-section"><div class="modal-section-title">Aplicaciones principales</div><div class="modal-list">`;
+  d.apps.forEach(a=>body+=`<div class="modal-list-item">${a}</div>`);
+  body+=`</div></div>`;
+  body+=`<div class="modal-section"><div class="modal-section-title">Casos de estudio (2020–2025)</div><div class="cases">`;
+  d.cases.forEach(c=>body+=`<div class="case-item"><span class="case-company">${c.co}</span>${c.d}</div>`);
+  body+=`</div></div>`;
+  body+=`<div class="modal-section"><div class="modal-section-title">Impacto ambiental cuantificado</div><div class="impact-badge ${badgeCls[d.color]}"><i class="ti ti-leaf" style="font-size:14px;flex-shrink:0"></i>${d.impact}</div></div>`;
+  body+=`<div class="modal-section"><div class="modal-section-title">Marco normativo aplicable</div><div class="norm-list">`;
+  d.norm.forEach(n=>body+=`<span class="norm-tag">${n}</span>`);
+  body+=`</div></div>`;
+  document.getElementById('m-body').innerHTML=body;
+  document.getElementById('overlay').classList.add('open');
+  if(activeEl)activeEl.classList.remove('active');
+  el.classList.add('active');
+  activeEl=el;
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  if(activeEl){activeEl.classList.remove('active');activeEl=null;}
+}
+function closeOnOverlay(e){if(e.target===document.getElementById('overlay'))closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
